@@ -1,0 +1,2 @@
+include ':app'
+rootProject.name='mora_kotlin_ver'
