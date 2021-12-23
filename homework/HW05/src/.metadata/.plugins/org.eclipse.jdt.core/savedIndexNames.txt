@@ -1,0 +1,1 @@
+INDEX VERSION 1.131+K:\__課業相關\110-1 應用軟體設計\Homework\CH5\HW_CH05\src\.metadata\.plugins\org.eclipse.jdt.core
