@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
@@ -42,14 +43,11 @@ public class Scan_QRCode_Fragment extends Fragment {
     SurfaceView surfaceView;
     TextView tvRead;
 
-    // 用以儲存發票資料之相關變數
-    String RECEIPT_DATA = "RECEIPT_DATA";
-    Gson gson;
-    SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
-    TreeMap<String, HashSet<String>> map; // 內層的map(日期)
-    TreeMap<String, TreeMap<String, HashSet<String>>> map2; // 外層的map(年分)
-    ArrayList<TreeMap<String, TreeMap<String, HashSet<String>>>> arrayList;
+    // 儲存發票資料之相關變數
+    private SQLiteDatabase db;
+    private ArrayList<String> list;
+    private final String DB_NAME = "MY_RECEIPT";
+    private String[] receipt_interval = {"", "1~2月", "1~2月", "3~4月", "3~4月", "5~6月", "5~6月", "7~8月", "7~8月", "9~10月", "9~10月", "11~12月", "11~12月"};
 
     // 宣告Google相機所需變數
     CameraSource cameraSource;
@@ -59,17 +57,6 @@ public class Scan_QRCode_Fragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        // Destroy時，提交editor的改動
-        try {
-            arrayList.add(map2);
-            String jsonData = gson.toJson(arrayList);
-            editor.putString(RECEIPT_DATA, jsonData);
-            editor.commit();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     @Override
@@ -140,35 +127,19 @@ public class Scan_QRCode_Fragment extends Fragment {
                                 // 分離出發票年度(第10~12個字元)
                                 String receipt_year = strGet.substring(10, 13);
                                 // 分離出發票日期(第13~16個字元)
-                                String receipt_date = strGet.substring(13, 15) + "/" + strGet.substring(15, 17);
+                                String receipt_month = strGet.substring(13, 15);
+                                String recipt_day = strGet.substring(15, 17);
 
 
-                                tvRead.setText("發票號碼: " + receipt_num + "\n" + "發票日期: " + receipt_date);
+                                tvRead.setText("發票號碼: " + receipt_num + "\n" + "發票日期: " + receipt_month + "/" + recipt_day);
 
-                                // 依照年份取出內層map
-                                map = map2.get(receipt_year);
+                                // 將資料寫入資料庫中
+                                try {
+                                    db.execSQL("INSERT INTO " + DB_NAME + " VALUES(?,?,?,?,?)",
+                                            new String[]{receipt_year, receipt_month, recipt_day, receipt_num, receipt_year+"年"+receipt_interval[Integer.parseInt(receipt_month)]});
+                                }catch (Exception e){
 
-                                if (map == null) {
-                                    map = new TreeMap<>();
                                 }
-
-                                // 如果沒有儲存過這天的發票
-                                if (!map.containsKey(receipt_date)) {
-                                    // 直接新增一個HashSet並塞入map
-                                    HashSet<String> tmp_set = new HashSet<>();
-                                    tmp_set.add(receipt_num);
-                                    map.put(receipt_date, tmp_set);
-                                } else {  // 若已經儲存過
-                                    // 則先撈出原本的資料放入HashSet
-                                    HashSet<String> tmp_set = map.get(receipt_date);
-                                    // 然後將新的發票加進去
-                                    tmp_set.add(receipt_num);
-                                    // 再塞回map中
-                                    map.put(receipt_date, tmp_set);
-                                }
-
-                                // 將內層map的內容塞入外層map
-                                map2.put(receipt_year, map);
 
                             }
 
@@ -182,22 +153,7 @@ public class Scan_QRCode_Fragment extends Fragment {
     }
 
     private void myInit() {
-        // 讓json資料能夠正常顯示:及=，而不是轉成unicode編碼
-        gson = new GsonBuilder().disableHtmlEscaping().create();
-        // 初始化SharedPreferences及HashMap等參數
-        sharedPreferences = getActivity().getSharedPreferences(RECEIPT_DATA, Context.MODE_PRIVATE);
-        editor = sharedPreferences.edit();
-        map = new TreeMap<>();
-        map2 = new TreeMap<>();
-        arrayList = new ArrayList<>();
-
-        // 讀取SharedPreferences中的Json格式資料並放入map2中(因為是外層map)
-        String data = sharedPreferences.getString(RECEIPT_DATA, "[{}]");
-        if (data.charAt(0) == '[')  // 拆掉最外層的中括號，以避免格式錯誤
-            data = data.substring(1, data.length() - 1);
-
-        map2 = new Gson().fromJson(data, new TypeToken<TreeMap<String, TreeMap<String, HashSet<String>>>>() {
-        }.getType());
-
+        // 初始化db
+        db = new myDBHelper(getActivity()).getWritableDatabase();
     }
 }

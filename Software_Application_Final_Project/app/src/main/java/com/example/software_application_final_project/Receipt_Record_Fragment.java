@@ -3,6 +3,8 @@ package com.example.software_application_final_project;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,107 +34,45 @@ import java.util.TreeMap;
 
 public class Receipt_Record_Fragment extends Fragment {
 
+    // 物件及介面相關變數
+    View view;
+    Button btnClear;
     private RecyclerView recyclerView;
     myAdapter adapter;
 
-    View view;
-    Button btnClear;
-    SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
-    String RECEIPT_DATA = "RECEIPT_DATA";
-    ArrayList<TreeMap<String, TreeMap<String, HashSet<String>>>> list;
-    TreeMap<String, TreeMap<String, HashSet<String>>> map;
+    // 資料庫相關變數
+    private final String DB_NAME = "MY_RECEIPT";
+    private SQLiteDatabase db;
+
+    // 發票資料相關變數
+    ArrayList<String> list;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         view = inflater.inflate(R.layout.fragment_receipt__record, container, false);
 
-
-        myInit();
         findViewByIds();
-        readDataFromSharedPreference();
-        showList();
-
+        myInit();
+        loadDataFromDB();
 
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editor.clear();
-                editor.commit();
-                readDataFromSharedPreference();
-                showList();
+                Toast.makeText(getActivity(), "touched", Toast.LENGTH_SHORT).show();
             }
         });
 
         return view;
     }
 
-    private void showList() {
+    private void loadDataFromDB() {
+        db = new myDBHelper(getActivity()).getWritableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM " + DB_NAME + " ORDER BY Receipt_Interval, Receipt_Month", null);
+        c.moveToFirst();
 
-        ArrayList<String> list_date = new ArrayList<>();
-        ArrayList<String> list_number = new ArrayList<>();
-
-        // 將map轉成list再塞給adapter(因為需要用到list的index及getItemCount方法 recyclerView才有作用)
-        for(Map.Entry<String, ?> itor_of_receipt_year : map.entrySet()){
-            // 利用迭代抓出每年的map
-            String year = (String) itor_of_receipt_year.getKey();
-            TreeMap<String, HashSet<String>> little_map = (TreeMap<String, HashSet<String>>) itor_of_receipt_year.getValue();
-            // 再利用迭代抓出某年的所有資料
-            for(Map.Entry<String, ?> itor_of_receipt_data : little_map.entrySet()){
-                String date = (String) itor_of_receipt_data.getKey();
-                HashSet<String> number = little_map.get(date);
-                // 將資料塞入list中
-                // 如果同一天有超過一張發票，將set拆開，recyclerview才能顯示
-                if(number.size()>1){
-                    for (String s: number){
-                        list_date.add(date);
-                        list_number.add(s);
-                    }
-                }else{
-                    list_date.add(date);
-                    String tmp = String.valueOf(number);
-                    list_number.add(tmp.substring(1, tmp.length()-1));
-                }
-            }
-        }
-
-        // 設置RecyclerView為列表型態
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        // 設置格線
-        //recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
-        // 將資料交給adapter
-        adapter = new myAdapter(list_date, list_number);
-
-        // 設置adapter給recycler_view
+        adapter = new myAdapter(c);
         recyclerView.setAdapter(adapter);
-    }
-
-    private void readDataFromSharedPreference(){
-        Map<String, ?> tmpMap = sharedPreferences.getAll();
-        if(tmpMap == null) return;
-        String data = "";
-        String JsonData = "";
-        for( Map.Entry<String, ?> elements : tmpMap.entrySet()){
-            String key = elements.getKey();
-            Object val = elements.getValue();
-            data = key + ": " + val + "\n";
-            JsonData = (String) val;
-        }
-
-        if (JsonData.length() <= 0) return;
-
-        if(JsonData.charAt(0) == '['){
-            JsonData = JsonData.substring(1, JsonData.length()-1);
-        }
-
-        try {
-            map = new Gson().fromJson(JsonData, new TypeToken<TreeMap<String, TreeMap<String, HashSet<String>>>>(){}.getType());
-            list.add(map);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
     }
 
     private void findViewByIds(){
@@ -141,9 +81,10 @@ public class Receipt_Record_Fragment extends Fragment {
     }
 
     private void myInit(){
-        sharedPreferences = getActivity().getSharedPreferences(RECEIPT_DATA, Context.MODE_PRIVATE);
-        editor = sharedPreferences.edit();
-        map = new TreeMap<>();
+        // 初始化ArrayList
         list = new ArrayList<>();
+        // 設定recyclerview為列表型態
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(adapter);
     }
 }

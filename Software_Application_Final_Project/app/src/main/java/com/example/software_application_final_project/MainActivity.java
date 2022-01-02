@@ -88,38 +88,4 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION);
         }
     }
-
-    /**
-
-    // 使用SharedPreferences寫資料
-    private boolean writeData(String data){
-        if(data.length() == 0) return false;
-        // 創建SharedPreference, 索引為Data
-        SharedPreferences sharedPreferences = getSharedPreferences("Data", Context.MODE_PRIVATE);
-        // 創建SharedPreference.Editor編輯儲存內容
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        // 寫入欲儲存之資料，並設定索引為SavedData
-        editor.putString("SavedData", data);
-        // 回傳commit結果
-        return editor.commit();
-    }
-
-
-     *
-    // 使用SharedPreferences讀資料
-    private String readData(){
-        SharedPreferences sharedPreferences = getSharedPreferences("Data", Context.MODE_PRIVATE);
-        // 回傳SavedData中的資料，若為空則回傳 "未儲存任何資料！"
-        return sharedPreferences.getString("SavedData", "未儲存任何資料！");
-    }
-
-    // 清除SharedPreferences裡的資料
-    private void wipeData(){
-        SharedPreferences sharedPreferences = getSharedPreferences("Data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
-    }
-
-     **/
 }

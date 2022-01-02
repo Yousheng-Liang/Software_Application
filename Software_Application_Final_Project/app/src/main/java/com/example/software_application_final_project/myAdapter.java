@@ -1,10 +1,12 @@
 package com.example.software_application_final_project;
 
+import android.database.Cursor;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,15 +18,12 @@ import java.util.TreeMap;
 
 public class myAdapter extends RecyclerView.Adapter<myAdapter.ViewHolder> {
 
-    private TreeMap<String, TreeMap<String, HashSet<String>>> map;
-    private ArrayList<String> list_date;
-    private ArrayList<String> list_number;
-    private int itemCount;
+    private ArrayList<String> list;
+    private Cursor c;
 
-    public myAdapter(ArrayList<String> list_date, ArrayList<String> list_number){
-        this.list_date = list_date;
-        this.list_number = list_number;
-        this.itemCount = list_date.size();
+
+    public myAdapter(Cursor c){
+        this.c = c;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
@@ -49,19 +48,21 @@ public class myAdapter extends RecyclerView.Adapter<myAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+
         // 設定各物件要顯示的內容
         try{
-            holder.tvReceiptDate.setText(list_date.get(position));
-            holder.tvReceiptNumber.setText(list_number.get(position));
+            holder.tvReceiptDate.setText(c.getString(0) + "/" + c.getString(1) + "/" +  c.getString(2));
+
+            holder.tvReceiptNumber.setText(c.getString(3));
+            c.moveToNext();
         }catch (Exception e){
             e.printStackTrace();
         }
+
     }
 
     @Override
     public int getItemCount() {
-        return list_date.size();
+        return c.getCount();
     }
-
-
 }
