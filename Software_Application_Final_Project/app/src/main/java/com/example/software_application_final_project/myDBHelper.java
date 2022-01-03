@@ -3,6 +3,8 @@ package com.example.software_application_final_project;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -25,6 +27,7 @@ public class myDBHelper extends SQLiteOpenHelper {
                 "Receipt_Number text NOT NULL PRIMARY KEY," +
                 "Receipt_Interval text NOT NULL)"
         );
+        Log.d("LYS", "DB_Created");
     }
 
     @Override

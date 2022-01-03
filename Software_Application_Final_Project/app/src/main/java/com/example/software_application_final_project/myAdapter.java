@@ -52,7 +52,6 @@ public class myAdapter extends RecyclerView.Adapter<myAdapter.ViewHolder> {
         // 設定各物件要顯示的內容
         try{
             holder.tvReceiptDate.setText(c.getString(0) + "/" + c.getString(1) + "/" +  c.getString(2));
-
             holder.tvReceiptNumber.setText(c.getString(3));
             c.moveToNext();
         }catch (Exception e){
