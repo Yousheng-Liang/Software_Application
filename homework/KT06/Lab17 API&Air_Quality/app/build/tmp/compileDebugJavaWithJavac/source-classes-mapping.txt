@@ -1,2 +1,0 @@
-com/lys/airquality/BuildConfig.java
- com.lys.airquality.BuildConfig

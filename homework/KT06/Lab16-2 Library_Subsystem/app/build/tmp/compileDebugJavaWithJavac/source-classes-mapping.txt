@@ -1,2 +1,0 @@
-com/lys/library_subsystem/BuildConfig.java
- com.lys.library_subsystem.BuildConfig

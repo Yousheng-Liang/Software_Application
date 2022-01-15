@@ -1,2 +1,0 @@
-com/lys/contentprovider/BuildConfig.java
- com.lys.contentprovider.BuildConfig
